@@ -27,9 +27,10 @@ class Experiments.Clock
     @start()
 
   start: ->
+    @render(@fields())
     setInterval =>
-      @render(@fields())
-    , 1000
+        @render(@fields())
+      , 1000
 
   fields: ->
     time = new Date()
