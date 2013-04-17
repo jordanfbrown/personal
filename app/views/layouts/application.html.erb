@@ -10,6 +10,7 @@
 </head>
 <body class="<%= controller_name %> <%= action_name %>">
 
+<%= render 'shared/header', h1: action_name == 'home' ? 'Jordan Brown' : controller_name.capitalize %>
 <%= yield %>
 
 </body>

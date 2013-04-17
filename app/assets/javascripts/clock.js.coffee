@@ -50,7 +50,7 @@ class Experiments.Clock
     @scaleHours = d3.scale.linear().domain([0, 11 + 59 / 60]).range([0, 2 * @pi])
 
   buildClock: ->
-    vis = d3.selectAll('.chart')
+    vis = d3.selectAll('.svg-content')
       .append('svg:svg')
       .attr('width', @width)
       .attr('height', @height)

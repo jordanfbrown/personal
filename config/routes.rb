@@ -1,5 +1,9 @@
 Personal::Application.routes.draw do
   root :to => 'pages#home'
-  match 'clock' => 'experiments#clock'
-  match 'd3' => 'experiments#d3'
+  match 'experiments/clock' => 'experiments#clock'
+  match 'experiments/circles' => 'experiments#circles'
+  match 'experiments/tetris' => 'experiments#tetris'
+  match 'experiments' => 'experiments#index'
 end
+
+

@@ -1,7 +1,9 @@
 $max-width: 1920px;
+$min-width: 320px;
 
 body {
   max-width: $max-width;
+  min-width: $min-width;
   width: 100%;
 }
 
@@ -14,7 +16,11 @@ body {
 }
 
 .text-content {
-  width: 800px;
   margin: 0 auto;
+  max-width: 800px;
+}
 
+.svg-content {
+  max-width: 600px;
+  margin: 0 auto;
 }

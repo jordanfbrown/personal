@@ -1,0 +1,31 @@
+header {
+  text-align: center;
+  padding: 20px 0;
+  background-image: url(textures/gplaypattern.png);
+  background-size: auto;
+  background-repeat: repeat repeat;
+  border-bottom: 1px solid #ccc;
+
+  h1 {
+    text-shadow: 1px 1px 1px #fff;
+  }
+}
+
+nav {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 3px solid #aaa;
+  border-top: 3px solid #aaa;
+  margin-bottom: 20px;
+  background-color: #333;
+
+  li {
+    display: inline-block;
+    margin-right: 15px;
+    font-size: 2em;
+
+    a {
+      color: #fff;
+    }
+  }
+}
