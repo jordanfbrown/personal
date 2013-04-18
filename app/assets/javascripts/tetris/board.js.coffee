@@ -4,12 +4,19 @@ class Tetris.Board
 
   BOARD_HEIGHT: 540
 
+  NUM_ROWS: 10
+
+  NUM_COLUMNS: 18
+
+  SPEED: 450
+  
   currentTetrimino: null
 
-  SPEED: 750
+  occupiedSpaces: []
 
   constructor: ->
     @initializeCanvas()
+    @initializeOccupiedSpaces()
     @bindEvents()
     @run()
 
@@ -21,7 +28,18 @@ class Tetris.Board
     @canvas.setAttribute 'width', @BOARD_WIDTH + 'px'
 
     @context = @canvas.getContext '2d'
+
     window.ctx = @context
+
+  initializeOccupiedSpaces: ->
+    for i in [0..@NUM_ROWS - 1]
+      @occupiedSpaces[i] = []
+      for j in [0..@NUM_COLUMNS - 1]
+        @occupiedSpaces[i][j] = false
+
+  addOccupiedSpace: (row, col) ->
+    @occupiedSpaces[row][col] = true
+    console.log row,col
 
   bindEvents: ->
     document.addEventListener 'keydown', @handleKeyPress
@@ -38,11 +56,13 @@ class Tetris.Board
     @generateTetrimino()
     setInterval =>
       @currentTetrimino.update()
-      @generateTetrimino() if @currentTetrimino.stoppedMoving()
+      @generateTetrimino() unless @currentTetrimino.isMoving()
     , @SPEED
 
   generateTetrimino: ->
     @currentTetrimino = new Tetris.Tetrimino @context, @
+
+
 
 
 

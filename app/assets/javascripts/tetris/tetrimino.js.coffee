@@ -4,32 +4,69 @@ class Tetris.Tetrimino
 
   currentPosition: null
 
+  board: null
+
+  SQUARE_WIDTH: null
+
   currentColor: '#000'
+
+  width: 4 # this will change
 
   constructor: (context, board) ->
     @context = context
     @board = board
     @SQUARE_WIDTH = @board.BOARD_WIDTH / 10
     @currentPosition = { x: @SQUARE_WIDTH * 3, y: 0 }
-
-    @draw()
-
-  draw: ->
     @context.strokeStyle = @currentColor
-    for i in [0..3]
-      @context.strokeRect(@currentPosition.x + i * @SQUARE_WIDTH, @currentPosition.y, @SQUARE_WIDTH, @SQUARE_WIDTH)
-    if @currentPosition.y > 0
-      for i in [0..3]
-        @context.clearRect(@currentPosition.x - 1 + i * @SQUARE_WIDTH, @currentPosition.y - @SQUARE_WIDTH, @SQUARE_WIDTH + 2, @SQUARE_WIDTH)
+    @moving = true
+    @createSquares()
+    @drawSquares()
+
+  createSquares: ->
+    @squares = ({ x: @SQUARE_WIDTH * 3 + @SQUARE_WIDTH * i, y: 0 } for i in [0..3])
+
+  getBottomSquare: ->
+    _.max @squares, (square) -> square.y
+
+  getTopSquare: ->
+    _.min @squares, (square) -> square.y
+
+  getLeftSquare: ->
+    _.min @squares, (square) -> square.x
+
+  getRightSquare: ->
+    _.max @squares, (square) -> square.x
+
+  drawSquares: ->
+    for square in @squares
+      @drawSquare square
+
+  deletePreviousSquare: (square) ->
+    @context.clearRect square.x - 1, square.y - 1, @SQUARE_WIDTH + 2, @SQUARE_WIDTH + 2
+
+  drawSquare: (square) ->
+    @context.strokeRect square.x, square.y, @SQUARE_WIDTH, @SQUARE_WIDTH
 
   moveLeft: ->
-    console.log 'left'
+    if @getLeftSquare().x > 0
+      for square in @squares
+        @deletePreviousSquare square
+        square.x -= @SQUARE_WIDTH
+      @drawSquares()
 
   moveRight: ->
-    console.log 'right'
-    
+    if @getRightSquare().x + @SQUARE_WIDTH < @board.BOARD_WIDTH
+      for square in @squares
+        @deletePreviousSquare square
+        square.x += @SQUARE_WIDTH
+      @drawSquares()
+
   softDrop: ->
-    console.log 'soft drop'
+    if @getBottomSquare().y + @SQUARE_WIDTH < @board.BOARD_HEIGHT
+      for square in @squares
+        @deletePreviousSquare square
+        square.y += @SQUARE_WIDTH
+      @drawSquares()
 
   rotate: ->
     console.log 'rotate'
@@ -38,10 +75,17 @@ class Tetris.Tetrimino
     console.log 'fast drop'
 
   update: ->
-    @currentPosition.y += @SQUARE_WIDTH
-    @draw()
+    if @getBottomSquare().y + @SQUARE_WIDTH >= @board.BOARD_HEIGHT
+      @moving = false
+      for square in @squares
+        @board.addOccupiedSpace square.x / @SQUARE_WIDTH, square.y / @SQUARE_WIDTH
+    else
+      for square in @squares
+        @deletePreviousSquare square
+        square.y += @SQUARE_WIDTH
+      @drawSquares()
 
-  stoppedMoving: ->
-    false
+  isMoving: ->
+    @moving
 
 
