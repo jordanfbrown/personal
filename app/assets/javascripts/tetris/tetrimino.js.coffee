@@ -1,68 +1,112 @@
 class Tetris.Tetrimino
 
-  TYPES: ['I', 'J', 'L', 'O', 'S', 'T', 'Z']
-
-  currentPosition: null
+  TYPES: [
+    { letter: 'I', color: 'red', },
+    { letter: 'J', color: 'blue', },
+    { letter: 'L', color: 'orange', },
+    { letter: 'O', color: 'purple', },
+    { letter: 'S', color: 'magenta', },
+    { letter: 'T', color: 'cyan', },
+    { letter: 'Z', color: 'green', }
+  ]
 
   board: null
 
   SQUARE_WIDTH: null
 
-  currentColor: '#000'
+  strokeStyle: '#000'
 
-  width: 4 # this will change
+  fillStyle: '#000'
 
   constructor: (context, board) ->
     @context = context
     @board = board
-    @SQUARE_WIDTH = @board.BOARD_WIDTH / 10
-    @currentPosition = { x: @SQUARE_WIDTH * 3, y: 0 }
-    @context.strokeStyle = @currentColor
+    @SQUARE_WIDTH = @board.BOARD_WIDTH / @board.NUM_ROWS
     @moving = true
+    @type = @TYPES[Math.floor Math.random() * 7]
+    
     @createSquares()
     @drawSquares()
 
   createSquares: ->
-    @squares = ({ x: @SQUARE_WIDTH * 3 + @SQUARE_WIDTH * i, y: 0 } for i in [0..3])
+    switch @type.letter
+      when 'I'
+        @squares = ({ x: @SQUARE_WIDTH * 3 + @SQUARE_WIDTH * i, y: 0 } for i in [0..3])
+      when 'J'
+        @squares = [
+          { x: @SQUARE_WIDTH * 3, y: 0 }
+          { x: @SQUARE_WIDTH * 4, y: 0 }
+          { x: @SQUARE_WIDTH * 5, y: 0 }
+          { x: @SQUARE_WIDTH * 5, y: @SQUARE_WIDTH }
+        ]
+      when 'L'
+        @squares = [
+          { x: @SQUARE_WIDTH * 3, y: @SQUARE_WIDTH }
+          { x: @SQUARE_WIDTH * 3, y: 0 }
+          { x: @SQUARE_WIDTH * 4, y: 0 }
+          { x: @SQUARE_WIDTH * 5, y: 0 }
+        ]
+      when 'O'
+        @squares = [
+          { x: @SQUARE_WIDTH * 3, y: 0 }
+          { x: @SQUARE_WIDTH * 3, y: @SQUARE_WIDTH }
+          { x: @SQUARE_WIDTH * 4, y: 0 }
+          { x: @SQUARE_WIDTH * 4, y: @SQUARE_WIDTH }
+        ]
+      when 'S'
+        @squares = [
+          { x: @SQUARE_WIDTH * 4, y: 0 }
+          { x: @SQUARE_WIDTH * 5, y: 0 }
+          { x: @SQUARE_WIDTH * 3, y: @SQUARE_WIDTH }
+          { x: @SQUARE_WIDTH * 4, y: @SQUARE_WIDTH }
+        ]
+      when 'T'
+        @squares = [
+          { x: @SQUARE_WIDTH * 3, y: 0 }
+          { x: @SQUARE_WIDTH * 4, y: 0 }
+          { x: @SQUARE_WIDTH * 5, y: 0 }
+          { x: @SQUARE_WIDTH * 4, y: @SQUARE_WIDTH }
+        ]
+      when 'Z'
+        @squares = [
+          { x: @SQUARE_WIDTH * 3, y: 0 }
+          { x: @SQUARE_WIDTH * 4, y: 0 }
+          { x: @SQUARE_WIDTH * 4, y: @SQUARE_WIDTH }
+          { x: @SQUARE_WIDTH * 5, y: @SQUARE_WIDTH }
+        ]
 
-  getBottomSquare: ->
-    _.max @squares, (square) -> square.y
-
-  getTopSquare: ->
-    _.min @squares, (square) -> square.y
-
-  getLeftSquare: ->
-    _.min @squares, (square) -> square.x
-
-  getRightSquare: ->
-    _.max @squares, (square) -> square.x
+    @context.strokeStyle = @strokeStyle
+    @context.fillStyle = @type.color
 
   drawSquares: ->
     for square in @squares
       @drawSquare square
 
   deletePreviousSquare: (square) ->
-    @context.clearRect square.x - 1, square.y - 1, @SQUARE_WIDTH + 2, @SQUARE_WIDTH + 2
+    @context.strokeStyle = '#fff'
+    @context.clearRect square.x, square.y, @SQUARE_WIDTH, @SQUARE_WIDTH
 
   drawSquare: (square) ->
-    @context.strokeRect square.x, square.y, @SQUARE_WIDTH, @SQUARE_WIDTH
+    @context.strokeStyle = @strokeStyle
+#    @context.strokeRect square.x, square.y, @SQUARE_WIDTH, @SQUARE_WIDTH
+    @context.fillRect square.x, square.y, @SQUARE_WIDTH, @SQUARE_WIDTH
 
   moveLeft: ->
-    if @getLeftSquare().x > 0
+    if @canMoveLeft()
       for square in @squares
         @deletePreviousSquare square
         square.x -= @SQUARE_WIDTH
       @drawSquares()
 
   moveRight: ->
-    if @getRightSquare().x + @SQUARE_WIDTH < @board.BOARD_WIDTH
+    if @canMoveRight()
       for square in @squares
         @deletePreviousSquare square
         square.x += @SQUARE_WIDTH
       @drawSquares()
 
   softDrop: ->
-    if @getBottomSquare().y + @SQUARE_WIDTH < @board.BOARD_HEIGHT
+    if @canMoveDown()
       for square in @squares
         @deletePreviousSquare square
         square.y += @SQUARE_WIDTH
@@ -75,15 +119,33 @@ class Tetris.Tetrimino
     console.log 'fast drop'
 
   update: ->
-    if @getBottomSquare().y + @SQUARE_WIDTH >= @board.BOARD_HEIGHT
-      @moving = false
-      for square in @squares
-        @board.addOccupiedSpace square.x / @SQUARE_WIDTH, square.y / @SQUARE_WIDTH
-    else
+    if @canMoveDown()
       for square in @squares
         @deletePreviousSquare square
         square.y += @SQUARE_WIDTH
       @drawSquares()
+    else
+      @moving = false
+      for square in @squares
+        @board.addOccupiedSpace square.x / @SQUARE_WIDTH, square.y / @SQUARE_WIDTH
+
+  canMoveDown: ->
+    _.all @squares, (square) =>
+      column = (square.y + @SQUARE_WIDTH) / @SQUARE_WIDTH
+      row = square.x / @SQUARE_WIDTH
+      square.y + @SQUARE_WIDTH < @board.BOARD_HEIGHT && !@board.isSpaceTaken row, column
+
+  canMoveLeft: ->
+    _.all @squares, (square) =>
+      column = square.y / @SQUARE_WIDTH
+      row = (square.x - @SQUARE_WIDTH) / @SQUARE_WIDTH
+      square.x > 0 && !@board.isSpaceTaken row, column
+
+  canMoveRight: ->
+    _.all @squares, (square) =>
+      column = square.y / @SQUARE_WIDTH
+      row = (square.x + @SQUARE_WIDTH) / @SQUARE_WIDTH
+      square.x + @SQUARE_WIDTH < @board.BOARD_WIDTH && !@board.isSpaceTaken row, column
 
   isMoving: ->
     @moving

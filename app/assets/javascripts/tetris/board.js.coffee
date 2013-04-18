@@ -39,7 +39,9 @@ class Tetris.Board
 
   addOccupiedSpace: (row, col) ->
     @occupiedSpaces[row][col] = true
-    console.log row,col
+
+  isSpaceTaken: (row, col) ->
+    @occupiedSpaces[row][col] == true
 
   bindEvents: ->
     document.addEventListener 'keydown', @handleKeyPress
