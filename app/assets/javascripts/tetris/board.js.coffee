@@ -4,9 +4,9 @@ class Tetris.Board
 
   BOARD_HEIGHT: 540
 
-  NUM_ROWS: 10
+  NUM_ROWS: 18
 
-  NUM_COLUMNS: 18
+  NUM_COLUMNS: 10
 
   SPEED: 450
   
@@ -15,6 +15,8 @@ class Tetris.Board
   occupiedSpaces: []
 
   constructor: ->
+    @score = 0
+
     @initializeCanvas()
     @initializeOccupiedSpaces()
     @bindEvents()
@@ -36,12 +38,46 @@ class Tetris.Board
       @occupiedSpaces[i] = []
       for j in [0..@NUM_COLUMNS - 1]
         @occupiedSpaces[i][j] = false
-
+        
   addOccupiedSpace: (row, col) ->
     @occupiedSpaces[row][col] = true
 
   isSpaceTaken: (row, col) ->
     @occupiedSpaces[row][col] == true
+
+  checkForLines: ->
+    lines = []
+    for i in [0..@NUM_ROWS - 1]
+      valid = true
+      for j in [0..@NUM_COLUMNS - 1]
+        valid = valid && @occupiedSpaces[i][j]
+      lines.push(i) if valid
+
+    if lines.length > 0
+      @clearLines lines
+    
+  clearLines: (rows) ->
+    @updateScore rows.length
+    @context.strokeStyle = '#fff'
+    for row in rows
+      for col in [0..@NUM_COLUMNS - 1]
+        console.log row, col
+        @occupiedSpaces[row][col] = false
+        @context.clearRect col * 30, row * 30, 30, 30
+
+  updateScore: (numLines) ->
+    @score += numLines * 100
+    console.log @score
+
+  findHighestSpace: (columns) ->
+    highest = Infinity
+    cell = {}
+    for row in [0..@NUM_ROWS - 1]
+      for column in columns
+        if row < highest && @occupiedSpaces[row][column]
+          highest = row
+          cell = { row: row, column: column }
+    cell
 
   bindEvents: ->
     document.addEventListener 'keydown', @handleKeyPress
@@ -58,7 +94,9 @@ class Tetris.Board
     @generateTetrimino()
     setInterval =>
       @currentTetrimino.update()
-      @generateTetrimino() unless @currentTetrimino.isMoving()
+      unless @currentTetrimino.isMoving()
+        @checkForLines()
+        @generateTetrimino()
     , @SPEED
 
   generateTetrimino: ->
