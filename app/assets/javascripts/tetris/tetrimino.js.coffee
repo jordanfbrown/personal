@@ -12,67 +12,88 @@ class Tetris.Tetrimino
 
   board: null
 
-  SQUARE_WIDTH: null
+  squareWidth: null
 
   strokeStyle: '#000'
 
   fillStyle: '#000'
 
+  ROTATION_ANGLE: Math.PI / 2
+
   constructor: (context, board) ->
     @context = context
     @board = board
-    @SQUARE_WIDTH = @board.BOARD_WIDTH / @board.NUM_ROWS
+    @squareWidth = @board.BOARD_WIDTH / @board.NUM_ROWS
     @moving = true
+    @rotationState = 0
     @type = @TYPES[Math.floor Math.random() * 7]
-    
+#    @type = @TYPES[0]
+
+    @buildMatrices()
     @createSquares()
     @drawSquares()
+
+  buildMatrices: ->
+#    @rotationMatrix = [
+#      [ Math.round(Math.cos(@ROTATION_ANGLE)), Math.round(-Math.sin(@ROTATION_ANGLE)) ]
+#      [ Math.round(Math.sin(@ROTATION_ANGLE)), Math.round(Math.cos(@ROTATION_ANGLE)) ]
+#    ]
+
+    @rotationMatrix = [
+      [ 0, 1 ]
+      [ -1,  0 ]
+    ]
 
   createSquares: ->
     switch @type.letter
       when 'I'
-        @squares = ({ x: @SQUARE_WIDTH * 3 + @SQUARE_WIDTH * i, y: 0 } for i in [0..3])
+        @squares = [
+          { x: @squareWidth * 3, y: 0 }
+          { x: @squareWidth * 4, y: 0 }
+          { x: @squareWidth * 5, y: 0 }
+          { x: @squareWidth * 6, y: 0 }
+        ]
       when 'J'
         @squares = [
-          { x: @SQUARE_WIDTH * 3, y: 0 }
-          { x: @SQUARE_WIDTH * 4, y: 0 }
-          { x: @SQUARE_WIDTH * 5, y: 0 }
-          { x: @SQUARE_WIDTH * 5, y: @SQUARE_WIDTH }
+          { x: @squareWidth * 3, y: 0 }
+          { x: @squareWidth * 4, y: 0 }
+          { x: @squareWidth * 5, y: 0 }
+          { x: @squareWidth * 5, y: @squareWidth }
         ]
       when 'L'
         @squares = [
-          { x: @SQUARE_WIDTH * 3, y: @SQUARE_WIDTH }
-          { x: @SQUARE_WIDTH * 3, y: 0 }
-          { x: @SQUARE_WIDTH * 4, y: 0 }
-          { x: @SQUARE_WIDTH * 5, y: 0 }
+          { x: @squareWidth * 3, y: 0 }
+          { x: @squareWidth * 4, y: 0 }
+          { x: @squareWidth * 5, y: 0 }
+          { x: @squareWidth * 3, y: @squareWidth }
         ]
       when 'O'
         @squares = [
-          { x: @SQUARE_WIDTH * 3, y: 0 }
-          { x: @SQUARE_WIDTH * 3, y: @SQUARE_WIDTH }
-          { x: @SQUARE_WIDTH * 4, y: 0 }
-          { x: @SQUARE_WIDTH * 4, y: @SQUARE_WIDTH }
+          { x: @squareWidth * 3, y: 0 }
+          { x: @squareWidth * 3, y: @squareWidth }
+          { x: @squareWidth * 4, y: 0 }
+          { x: @squareWidth * 4, y: @squareWidth }
         ]
       when 'S'
         @squares = [
-          { x: @SQUARE_WIDTH * 4, y: 0 }
-          { x: @SQUARE_WIDTH * 5, y: 0 }
-          { x: @SQUARE_WIDTH * 3, y: @SQUARE_WIDTH }
-          { x: @SQUARE_WIDTH * 4, y: @SQUARE_WIDTH }
+          { x: @squareWidth * 5, y: 0 }
+          { x: @squareWidth * 4, y: 0 }
+          { x: @squareWidth * 3, y: @squareWidth }
+          { x: @squareWidth * 4, y: @squareWidth }
         ]
       when 'T'
         @squares = [
-          { x: @SQUARE_WIDTH * 3, y: 0 }
-          { x: @SQUARE_WIDTH * 4, y: 0 }
-          { x: @SQUARE_WIDTH * 5, y: 0 }
-          { x: @SQUARE_WIDTH * 4, y: @SQUARE_WIDTH }
+          { x: @squareWidth * 3, y: 0 }
+          { x: @squareWidth * 4, y: 0 }
+          { x: @squareWidth * 5, y: 0 }
+          { x: @squareWidth * 4, y: @squareWidth }
         ]
       when 'Z'
         @squares = [
-          { x: @SQUARE_WIDTH * 3, y: 0 }
-          { x: @SQUARE_WIDTH * 4, y: 0 }
-          { x: @SQUARE_WIDTH * 4, y: @SQUARE_WIDTH }
-          { x: @SQUARE_WIDTH * 5, y: @SQUARE_WIDTH }
+          { x: @squareWidth * 3, y: 0 }
+          { x: @squareWidth * 4, y: 0 }
+          { x: @squareWidth * 4, y: @squareWidth }
+          { x: @squareWidth * 5, y: @squareWidth }
         ]
 
     @context.strokeStyle = @strokeStyle
@@ -84,36 +105,48 @@ class Tetris.Tetrimino
 
   deletePreviousSquare: (square) ->
     @context.strokeStyle = '#fff'
-    @context.clearRect square.x, square.y, @SQUARE_WIDTH, @SQUARE_WIDTH
+    @context.clearRect square.x, square.y, @squareWidth, @squareWidth
 
   drawSquare: (square) ->
     @context.strokeStyle = @strokeStyle
-#    @context.strokeRect square.x, square.y, @SQUARE_WIDTH, @SQUARE_WIDTH
-    @context.fillRect square.x, square.y, @SQUARE_WIDTH, @SQUARE_WIDTH
+#    @context.strokeRect square.x, square.y, @squareWidth, @squareWidth
+    @context.fillRect square.x, square.y, @squareWidth, @squareWidth
 
   moveLeft: ->
     if @canMoveLeft()
       for square in @squares
         @deletePreviousSquare square
-        square.x -= @SQUARE_WIDTH
+        square.x -= @squareWidth
       @drawSquares()
 
   moveRight: ->
     if @canMoveRight()
       for square in @squares
         @deletePreviousSquare square
-        square.x += @SQUARE_WIDTH
+        square.x += @squareWidth
       @drawSquares()
 
   softDrop: ->
     if @canMoveDown()
       for square in @squares
         @deletePreviousSquare square
-        square.y += @SQUARE_WIDTH
+        square.y += @squareWidth
       @drawSquares()
 
   rotate: ->
-    console.log 'rotate'
+    rotateAround = _.clone @squares[1]
+    for square in @squares
+      @deletePreviousSquare square
+      rotated = @rotateSquare square, rotateAround
+      square.x = rotated.x
+      square.y = rotated.y
+    @drawSquares
+
+  rotateSquare: (square, around) ->
+    x = square.x - around.x
+    y = square.y - around.y
+    [x, y] = [y, -x]
+    { x: x + around.x, y: y + around.y }
 
   fastDrop: ->
     console.log 'fast drop'
@@ -122,30 +155,30 @@ class Tetris.Tetrimino
     if @canMoveDown()
       for square in @squares
         @deletePreviousSquare square
-        square.y += @SQUARE_WIDTH
+        square.y += @squareWidth
       @drawSquares()
     else
       @moving = false
       for square in @squares
-        @board.addOccupiedSpace square.x / @SQUARE_WIDTH, square.y / @SQUARE_WIDTH
+        @board.addOccupiedSpace square.x / @squareWidth, square.y / @squareWidth
 
   canMoveDown: ->
     _.all @squares, (square) =>
-      column = (square.y + @SQUARE_WIDTH) / @SQUARE_WIDTH
-      row = square.x / @SQUARE_WIDTH
-      square.y + @SQUARE_WIDTH < @board.BOARD_HEIGHT && !@board.isSpaceTaken row, column
+      column = (square.y + @squareWidth) / @squareWidth
+      row = square.x / @squareWidth
+      square.y + @squareWidth < @board.BOARD_HEIGHT && !@board.isSpaceTaken row, column
 
   canMoveLeft: ->
     _.all @squares, (square) =>
-      column = square.y / @SQUARE_WIDTH
-      row = (square.x - @SQUARE_WIDTH) / @SQUARE_WIDTH
+      column = square.y / @squareWidth
+      row = (square.x - @squareWidth) / @squareWidth
       square.x > 0 && !@board.isSpaceTaken row, column
 
   canMoveRight: ->
     _.all @squares, (square) =>
-      column = square.y / @SQUARE_WIDTH
-      row = (square.x + @SQUARE_WIDTH) / @SQUARE_WIDTH
-      square.x + @SQUARE_WIDTH < @board.BOARD_WIDTH && !@board.isSpaceTaken row, column
+      column = square.y / @squareWidth
+      row = (square.x + @squareWidth) / @squareWidth
+      square.x + @squareWidth < @board.BOARD_WIDTH && !@board.isSpaceTaken row, column
 
   isMoving: ->
     @moving
